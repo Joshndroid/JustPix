@@ -39,6 +39,25 @@ volumes:
 
 Keep the `/photos` mount read-only with `:ro`.
 
+## GitHub Container Registry
+
+The GitHub Actions workflow builds the Docker image on pull requests and publishes it to GitHub Container Registry on pushes to `main` and version tags like `v1.0.0`.
+
+Published image tags include:
+
+```text
+ghcr.io/<owner>/<repo>:latest
+ghcr.io/<owner>/<repo>:main
+ghcr.io/<owner>/<repo>:v1.0.0
+ghcr.io/<owner>/<repo>:sha-<commit>
+```
+
+For this repository, replace your compose `build: .` line with an image once the package exists:
+
+```yaml
+image: ghcr.io/<owner>/<repo>:latest
+```
+
 ## Unraid Setup
 
 1. Put this project somewhere Unraid can build it, or build/publish the image from another machine.
