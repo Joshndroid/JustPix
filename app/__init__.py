@@ -1,0 +1,1 @@
+"""JustPix application package."""

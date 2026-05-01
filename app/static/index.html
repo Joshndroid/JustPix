@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>__APP_TITLE__</title>
+    <link rel="stylesheet" href="__ROOT_PATH__/static/style.css">
+  </head>
+  <body data-root-path="__ROOT_PATH__" data-auth-enabled="__AUTH_ENABLED__">
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="__ROOT_PATH__/browse/" data-nav-path="">
+          <span class="brand-mark">J</span>
+          <span>__APP_TITLE__</span>
+        </a>
+        <div class="topbar-actions">
+          <select id="sortSelect" aria-label="Sort">
+            <option value="name_asc">Name A-Z</option>
+            <option value="name_desc">Name Z-A</option>
+            <option value="date_desc">Newest</option>
+            <option value="date_asc">Oldest</option>
+          </select>
+          <form id="logoutForm" class="logout" method="post" action="__ROOT_PATH__/logout">
+            <button type="submit" title="Logout">Logout</button>
+          </form>
+        </div>
+      </header>
+
+      <nav id="breadcrumbs" class="breadcrumbs" aria-label="Breadcrumb"></nav>
+
+      <section class="summary" aria-live="polite">
+        <div>
+          <strong id="folderName">Library</strong>
+          <span id="folderStats"></span>
+        </div>
+        <div class="pager">
+          <button id="prevPage" type="button" title="Previous page">Prev</button>
+          <span id="pageLabel">Page 1</span>
+          <button id="nextPage" type="button" title="Next page">Next</button>
+        </div>
+      </section>
+
+      <section id="grid" class="gallery-grid" aria-live="polite"></section>
+      <p id="emptyState" class="empty" hidden>No media in this folder.</p>
+    </div>
+
+    <dialog id="lightbox" class="lightbox">
+      <button id="closeLightbox" class="lightbox-close" type="button" title="Close">Close</button>
+      <button id="prevItem" class="lightbox-nav prev" type="button" title="Previous">Prev</button>
+      <div id="lightboxStage" class="lightbox-stage"></div>
+      <button id="nextItem" class="lightbox-nav next" type="button" title="Next">Next</button>
+      <footer id="lightboxCaption" class="lightbox-caption"></footer>
+    </dialog>
+
+    <script src="__ROOT_PATH__/static/gallery.js"></script>
+  </body>
+</html>

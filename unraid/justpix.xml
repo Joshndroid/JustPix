@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>JustPix</Name>
+  <Repository>justpix:latest</Repository>
+  <Registry></Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/your-org/justpix</Support>
+  <Project>https://github.com/your-org/justpix</Project>
+  <Overview>Read-only local photo, video, and audio gallery.</Overview>
+  <Category>MediaApp:Photos</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <Config Name="Web UI Port" Target="3000" Default="3000" Mode="tcp" Description="JustPix web port" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="Photos" Target="/photos" Default="/mnt/user/Photos" Mode="ro" Description="Read-only media library" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/Photos</Config>
+  <Config Name="Thumbnail Cache" Target="/thumbcache" Default="/mnt/user/appdata/justpix/thumbcache" Mode="rw" Description="Writable thumbnail cache" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/justpix/thumbcache</Config>
+  <Config Name="Config" Target="/config" Default="/mnt/user/appdata/justpix/config" Mode="rw" Description="Optional users.json auth config" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/justpix/config</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Description="Runtime user ID" Type="Variable" Display="always" Required="true" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Description="Runtime group ID" Type="Variable" Display="always" Required="true" Mask="false">100</Config>
+  <Config Name="Auth Enabled" Target="AUTH_ENABLED" Default="false" Description="Enable built-in login gate" Type="Variable" Display="always" Required="false" Mask="false">false</Config>
+  <Config Name="Session Secret" Target="SESSION_SECRET" Default="" Description="Required when auth is enabled" Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Root Path" Target="ROOT_PATH" Default="" Description="Reverse proxy sub-path, for example /justpix" Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+</Container>

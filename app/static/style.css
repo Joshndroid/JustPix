@@ -1,0 +1,475 @@
+:root {
+  color-scheme: light dark;
+  --bg: #111314;
+  --panel: #1b1e20;
+  --panel-2: #24282b;
+  --text: #f3f0e8;
+  --muted: #b9b3a7;
+  --line: #34383b;
+  --accent: #6ec7b0;
+  --accent-2: #f4c76a;
+  --danger: #ff8f8f;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button,
+select {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  border-radius: 8px;
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.app-shell {
+  width: min(1440px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 18px 0 36px;
+}
+
+.topbar,
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topbar {
+  min-height: 56px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 760;
+  font-size: 1.15rem;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #071412;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+select,
+.topbar button,
+.pager button {
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+.logout[hidden] {
+  display: none;
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  overflow-x: auto;
+  white-space: nowrap;
+  color: var(--muted);
+  scrollbar-width: thin;
+}
+
+.breadcrumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.summary {
+  margin: 12px 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.summary strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.summary span {
+  color: var(--muted);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pager span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 72px;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.tile {
+  position: relative;
+  display: block;
+  min-width: 0;
+  min-height: 190px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1.18;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  text-align: left;
+  text-decoration: none;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tile:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.media-tile img,
+.folder-visual {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #202426;
+}
+
+.folder-visual {
+  position: relative;
+}
+
+.folder-visual::before {
+  content: "";
+  position: absolute;
+  left: 18%;
+  top: 24%;
+  width: 36%;
+  height: 14%;
+  border-radius: 8px 8px 0 0;
+  background: var(--accent-2);
+}
+
+.folder-visual span {
+  position: absolute;
+  left: 13%;
+  right: 13%;
+  top: 34%;
+  bottom: 20%;
+  border-radius: 8px;
+  background: #dcae46;
+}
+
+.tile-meta {
+  display: grid;
+  gap: 2px;
+  min-height: 54px;
+  padding: 10px 11px;
+}
+
+.tile-meta strong,
+.tile-meta small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile-meta small,
+.kind-badge {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.kind-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(10, 12, 12, 0.78);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.empty {
+  margin: 48px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.lightbox {
+  width: min(1120px, calc(100vw - 24px));
+  height: min(780px, calc(100vh - 24px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #080909;
+  color: var(--text);
+}
+
+.lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.lightbox-stage {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: calc(100% - 54px);
+  padding: 46px 54px 12px;
+}
+
+.lightbox-stage img,
+.lightbox-stage video {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.lightbox-stage audio {
+  width: min(680px, 100%);
+}
+
+.lightbox-close,
+.lightbox-nav {
+  position: absolute;
+  z-index: 2;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 14px;
+  background: rgba(36, 40, 43, 0.9);
+}
+
+.lightbox-close {
+  top: 10px;
+  right: 10px;
+}
+
+.lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-nav.prev {
+  left: 10px;
+}
+
+.lightbox-nav.next {
+  right: 10px;
+}
+
+.lightbox-caption {
+  min-height: 54px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-page {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-panel {
+  width: min(390px, 100%);
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.login-brand {
+  margin-bottom: 20px;
+}
+
+.login-panel form,
+.login-panel label {
+  display: grid;
+  gap: 8px;
+}
+
+.login-panel form {
+  gap: 14px;
+}
+
+.login-panel input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0e1011;
+  color: var(--text);
+}
+
+.login-panel button {
+  min-height: 48px;
+}
+
+.form-error {
+  margin: 0;
+  color: var(--danger);
+}
+
+.error-page {
+  width: min(520px, calc(100% - 32px));
+  margin: 18vh auto 0;
+}
+
+.error-page h1 {
+  margin: 0 0 8px;
+  font-size: 3rem;
+}
+
+.error-page p {
+  color: var(--muted);
+}
+
+.error-page a {
+  color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100% - 24px, 760px);
+    padding-top: 14px;
+  }
+
+  .topbar,
+  .summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar-actions,
+  .pager {
+    width: 100%;
+  }
+
+  .brand {
+    font-size: 1.12rem;
+  }
+
+  .topbar-actions select,
+  .topbar-actions button,
+  .pager button {
+    flex: 1;
+  }
+
+  select,
+  .topbar button,
+  .pager button {
+    min-height: 48px;
+  }
+
+  .breadcrumbs {
+    gap: 10px;
+    min-height: 48px;
+  }
+
+  .breadcrumbs a {
+    min-height: 44px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .tile {
+    min-height: 200px;
+    aspect-ratio: 1 / 1.24;
+  }
+
+  .tile-meta {
+    min-height: 58px;
+    padding: 11px 12px;
+  }
+
+  .tile-meta strong {
+    font-size: 0.98rem;
+  }
+
+  .kind-badge {
+    top: 9px;
+    right: 9px;
+  }
+
+  .lightbox-stage {
+    padding: 64px 14px 14px;
+  }
+
+  .lightbox-close {
+    top: 12px;
+    right: 12px;
+  }
+
+  .lightbox-nav.prev {
+    left: 12px;
+  }
+
+  .lightbox-nav.next {
+    right: 12px;
+  }
+
+}
