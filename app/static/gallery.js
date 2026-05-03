@@ -89,8 +89,8 @@ function renderBreadcrumbs(path) {
   breadcrumbs.innerHTML = "";
   const root = document.createElement("a");
   root.href = browseUrl("");
+  root.dataset.path = "";
   root.textContent = "Library";
-  root.addEventListener("click", (event) => navigate(event, ""));
   breadcrumbs.append(root);
 
   let acc = "";
@@ -100,8 +100,8 @@ function renderBreadcrumbs(path) {
     const targetPath = acc;
     const link = document.createElement("a");
     link.href = browseUrl(targetPath);
+    link.dataset.path = targetPath;
     link.textContent = part;
-    link.addEventListener("click", (event) => navigate(event, targetPath));
     breadcrumbs.append(link);
   }
 }
@@ -267,6 +267,13 @@ document.getElementById("closeLightbox").addEventListener("click", () => lightbo
 document.getElementById("prevItem").addEventListener("click", () => stepLightbox(-1));
 document.getElementById("nextItem").addEventListener("click", () => stepLightbox(1));
 lightbox.addEventListener("close", stopLightboxMedia);
+breadcrumbs.addEventListener("click", (event) => {
+  const link = event.target.closest("a[data-path]");
+  if (!link || !breadcrumbs.contains(link)) {
+    return;
+  }
+  navigate(event, link.dataset.path);
+});
 
 document.addEventListener("keydown", (event) => {
   if (!lightbox.open) return;

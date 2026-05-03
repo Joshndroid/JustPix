@@ -265,13 +265,16 @@ select,
 }
 
 .lightbox {
-  width: min(1120px, calc(100vw - 24px));
-  height: min(780px, calc(100vh - 24px));
+  width: calc(100vw - 24px);
+  height: calc(100dvh - 24px);
+  max-width: none;
+  max-height: none;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #080909;
   color: var(--text);
+  overflow: hidden;
 }
 
 .lightbox::backdrop {
@@ -284,13 +287,16 @@ select,
   width: 100%;
   height: calc(100% - 54px);
   padding: 46px 54px 12px;
+  overflow: hidden;
 }
 
 .lightbox-stage img,
 .lightbox-stage video {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
