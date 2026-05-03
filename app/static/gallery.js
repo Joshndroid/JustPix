@@ -97,10 +97,11 @@ function renderBreadcrumbs(path) {
   for (const part of path.split("/").filter(Boolean)) {
     breadcrumbs.append(document.createTextNode("/"));
     acc = acc ? `${acc}/${part}` : part;
+    const targetPath = acc;
     const link = document.createElement("a");
-    link.href = browseUrl(acc);
+    link.href = browseUrl(targetPath);
     link.textContent = part;
-    link.addEventListener("click", (event) => navigate(event, acc));
+    link.addEventListener("click", (event) => navigate(event, targetPath));
     breadcrumbs.append(link);
   }
 }
@@ -188,11 +189,20 @@ function openLightbox(index) {
   lightbox.showModal();
 }
 
+function stopLightboxMedia() {
+  lightboxStage.querySelectorAll("audio, video").forEach((element) => {
+    element.pause();
+    element.removeAttribute("src");
+    element.load();
+  });
+}
+
 function renderLightbox() {
   const item = state.media[state.activeIndex];
   if (!item) {
     return;
   }
+  stopLightboxMedia();
   lightboxStage.innerHTML = "";
   const src = mediaUrl("media", item.path);
   let element;
@@ -256,6 +266,7 @@ nextPage.addEventListener("click", () => loadFolder(state.currentPath, { page: s
 document.getElementById("closeLightbox").addEventListener("click", () => lightbox.close());
 document.getElementById("prevItem").addEventListener("click", () => stepLightbox(-1));
 document.getElementById("nextItem").addEventListener("click", () => stepLightbox(1));
+lightbox.addEventListener("close", stopLightboxMedia);
 
 document.addEventListener("keydown", (event) => {
   if (!lightbox.open) return;
