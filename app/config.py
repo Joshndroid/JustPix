@@ -58,7 +58,7 @@ def load_settings() -> Settings:
     else:
         root_path = ""
 
-    auth_enabled = _bool_env("AUTH_ENABLED", False)
+    auth_enabled = _bool_env("AUTH_ENABLED", True)
     session_secret = os.getenv("SESSION_SECRET", "")
     if auth_enabled and not session_secret:
         raise ValueError("SESSION_SECRET is required when AUTH_ENABLED=true")

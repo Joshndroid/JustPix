@@ -22,6 +22,7 @@ const lightbox = document.getElementById("lightbox");
 const lightboxStage = document.getElementById("lightboxStage");
 const lightboxCaption = document.getElementById("lightboxCaption");
 const logoutForm = document.getElementById("logoutForm");
+const adminLink = document.getElementById("adminLink");
 
 sortSelect.value = state.sort;
 
@@ -79,6 +80,7 @@ function render() {
   prevPage.disabled = !listing.has_previous;
   nextPage.disabled = !listing.has_next;
   logoutForm.hidden = !listing.app?.auth_enabled;
+  adminLink.hidden = listing.app?.user?.role !== "admin";
   renderBreadcrumbs(listing.path);
   renderGrid(listing);
 }

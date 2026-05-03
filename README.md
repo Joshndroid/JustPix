@@ -99,7 +99,7 @@ PGID=100
 | `THUMB_SIZE` | `320` | Maximum thumbnail dimension |
 | `THUMB_QUALITY` | `75` | JPEG thumbnail quality |
 | `PREGEN_THUMBS` | `false` | Generate thumbnails at startup |
-| `AUTH_ENABLED` | `false` | Enable login/session protection |
+| `AUTH_ENABLED` | `true` | Enable login/session protection |
 | `USERS_FILE` | `/data/config/users.json` | User account file |
 | `SESSION_SECRET` | empty | Required when auth is enabled |
 | `SESSION_COOKIE_NAME` | `justpix_session` | Session cookie name |
@@ -109,25 +109,36 @@ PGID=100
 
 ## Optional Auth
 
-Auth is disabled by default. To enable it:
+Auth is enabled by default. Set a long random `SESSION_SECRET` before first start:
 
-1. Generate a user entry:
-
-```bash
-docker compose run --rm justpix python -m app.tools.create_user admin --json
+```text
+AUTH_ENABLED=true
+SESSION_SECRET=replace-this-with-a-long-random-value
 ```
 
-2. Put the output in:
+On first launch, if `/data/config/users.json` does not exist or has no users, JustPix opens a setup page. The first user created there is assigned the `admin` role automatically. After that, public signup is closed.
+
+Admins can add later users from:
+
+```text
+/admin
+```
+
+You can also pre-create a users file before first start:
+
+```bash
+docker compose run --rm justpix python -m app.tools.create_user admin --role admin --json
+```
+
+Put the output in:
 
 ```text
 /mnt/userdata/justpix/config/users.json
 ```
 
-3. Set:
+The runtime path is:
 
 ```text
-AUTH_ENABLED=true
-SESSION_SECRET=replace-this-with-a-long-random-value
 USERS_FILE=/data/config/users.json
 ```
 

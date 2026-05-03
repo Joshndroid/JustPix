@@ -92,6 +92,18 @@ button:disabled {
   gap: 10px;
 }
 
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  text-decoration: none;
+}
+
 select,
 .topbar button,
 .pager button {
@@ -342,6 +354,12 @@ select,
   margin-bottom: 20px;
 }
 
+.panel-title {
+  margin: 0 0 18px;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
 .login-panel form,
 .login-panel label {
   display: grid;
@@ -389,6 +407,89 @@ select,
   color: var(--accent);
 }
 
+.admin-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 18px 0 36px;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: 18px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.admin-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.admin-panel h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.admin-panel label {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-panel input,
+.admin-panel select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0e1011;
+  color: var(--text);
+}
+
+.admin-panel button {
+  min-height: 48px;
+}
+
+.user-list {
+  display: grid;
+  gap: 10px;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.user-row div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.user-row strong,
+.user-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-row small,
+.user-row span {
+  color: var(--muted);
+}
+
 @media (max-width: 760px) {
   .app-shell {
     width: min(100% - 24px, 760px);
@@ -412,12 +513,14 @@ select,
 
   .topbar-actions select,
   .topbar-actions button,
+  .topbar-actions .topbar-link,
   .pager button {
     flex: 1;
   }
 
   select,
   .topbar button,
+  .topbar-link,
   .pager button {
     min-height: 48px;
   }
@@ -470,6 +573,15 @@ select,
 
   .lightbox-nav.next {
     right: 12px;
+  }
+
+  .admin-shell {
+    width: min(100% - 24px, 760px);
+    padding-top: 14px;
+  }
+
+  .admin-layout {
+    grid-template-columns: 1fr;
   }
 
 }

@@ -8,9 +8,9 @@ from fastapi import Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
 from app.config import Settings
-from .dependencies import optional_user
+from .dependencies import optional_user, require_admin
 from .sessions import create_session_cookie
-from .users import authenticate_user
+from .users import UsersError, authenticate_user, create_initial_admin, create_user, has_users, load_users
 
 _attempts: dict[str, deque[float]] = defaultdict(deque)
 
@@ -25,6 +25,22 @@ def _login_path(settings: Settings) -> str:
 
 def _browse_path(settings: Settings) -> str:
     return f"{settings.root_path}/browse/"
+
+
+def _setup_path(settings: Settings) -> str:
+    return f"{settings.root_path}/setup"
+
+
+def _set_session_cookie(response: Response, settings: Settings, username: str) -> None:
+    response.set_cookie(
+        settings.session_cookie_name,
+        create_session_cookie(username, settings.session_secret, settings.session_ttl_hours),
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite="lax",
+        max_age=settings.session_ttl_hours * 3600,
+        path=_cookie_path(settings),
+    )
 
 
 def _parse_rate_limit(value: str) -> tuple[int, int]:
@@ -55,6 +71,8 @@ def register_auth_routes(app, settings: Settings) -> None:
     def login_page(request: Request) -> Response:
         if not settings.auth_enabled:
             return RedirectResponse(url=_browse_path(settings), status_code=303)
+        if not has_users(settings.users_file):
+            return RedirectResponse(url=_setup_path(settings), status_code=303)
         if optional_user(request, settings):
             return RedirectResponse(url=_browse_path(settings), status_code=303)
         html = (Path(__file__).resolve().parent.parent / "static" / "login.html").read_text(encoding="utf-8")
@@ -66,6 +84,8 @@ def register_auth_routes(app, settings: Settings) -> None:
     async def login(request: Request, username: str = Form(...), password: str = Form(...)) -> Response:
         if not settings.auth_enabled:
             return RedirectResponse(url=_browse_path(settings), status_code=303)
+        if not has_users(settings.users_file):
+            return RedirectResponse(url=_setup_path(settings), status_code=303)
         if _rate_limited(request, settings):
             return JSONResponse({"detail": "Too many login attempts"}, status_code=429)
 
@@ -74,15 +94,7 @@ def register_auth_routes(app, settings: Settings) -> None:
             return JSONResponse({"detail": "Invalid username or password"}, status_code=401)
 
         response = RedirectResponse(url=_browse_path(settings), status_code=303)
-        response.set_cookie(
-            settings.session_cookie_name,
-            create_session_cookie(user.username, settings.session_secret, settings.session_ttl_hours),
-            httponly=True,
-            secure=settings.cookie_secure,
-            samesite="lax",
-            max_age=settings.session_ttl_hours * 3600,
-            path=_cookie_path(settings),
-        )
+        _set_session_cookie(response, settings, user.username)
         return response
 
     @app.post("/logout", include_in_schema=False)
@@ -90,3 +102,89 @@ def register_auth_routes(app, settings: Settings) -> None:
         response = RedirectResponse(url=_login_path(settings), status_code=303)
         response.delete_cookie(settings.session_cookie_name, path=_cookie_path(settings))
         return response
+
+    @app.get("/setup", include_in_schema=False)
+    def setup_page() -> Response:
+        if not settings.auth_enabled:
+            return RedirectResponse(url=_browse_path(settings), status_code=303)
+        if has_users(settings.users_file):
+            return RedirectResponse(url=_login_path(settings), status_code=303)
+        html = (Path(__file__).resolve().parent.parent / "static" / "setup.html").read_text(encoding="utf-8")
+        return HTMLResponse(
+            html.replace("__ROOT_PATH__", settings.root_path).replace("__APP_TITLE__", settings.app_title)
+        )
+
+    @app.post("/setup", include_in_schema=False)
+    async def setup(
+        username: str = Form(...),
+        password: str = Form(...),
+        display_name: str = Form(""),
+    ) -> Response:
+        if not settings.auth_enabled:
+            return RedirectResponse(url=_browse_path(settings), status_code=303)
+        try:
+            user = create_initial_admin(
+                settings.users_file,
+                username=username,
+                password=password,
+                display_name=display_name or None,
+            )
+        except UsersError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+
+        response = RedirectResponse(url=_browse_path(settings), status_code=303)
+        _set_session_cookie(response, settings, user.username)
+        return response
+
+    @app.get("/admin", include_in_schema=False)
+    def admin_page(request: Request) -> Response:
+        require_admin(request, settings)
+        html = (Path(__file__).resolve().parent.parent / "static" / "admin.html").read_text(encoding="utf-8")
+        return HTMLResponse(
+            html.replace("__ROOT_PATH__", settings.root_path).replace("__APP_TITLE__", settings.app_title)
+        )
+
+    @app.get("/admin/users", include_in_schema=False)
+    def admin_users(request: Request) -> Response:
+        require_admin(request, settings)
+        users = [
+            {
+                "username": user.username,
+                "display_name": user.display_name,
+                "role": user.role,
+                "disabled": user.disabled,
+            }
+            for user in load_users(settings.users_file).values()
+        ]
+        return JSONResponse({"users": users})
+
+    @app.post("/admin/users", include_in_schema=False)
+    async def admin_create_user(
+        request: Request,
+        username: str = Form(...),
+        password: str = Form(...),
+        display_name: str = Form(""),
+        role: str = Form("user"),
+    ) -> Response:
+        require_admin(request, settings)
+        try:
+            user = create_user(
+                settings.users_file,
+                username=username,
+                password=password,
+                display_name=display_name or None,
+                role=role,
+            )
+        except UsersError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+        return JSONResponse(
+            {
+                "user": {
+                    "username": user.username,
+                    "display_name": user.display_name,
+                    "role": user.role,
+                    "disabled": user.disabled,
+                }
+            },
+            status_code=201,
+        )

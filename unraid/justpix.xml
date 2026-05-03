@@ -16,7 +16,7 @@
   <Config Name="Appdata" Target="/data" Default="/mnt/userdata/justpix" Mode="rw" Description="Writable JustPix appdata containing config and thumbnail cache" Type="Path" Display="always" Required="true" Mask="false">/mnt/userdata/justpix</Config>
   <Config Name="PUID" Target="PUID" Default="99" Description="Runtime user ID" Type="Variable" Display="always" Required="true" Mask="false">99</Config>
   <Config Name="PGID" Target="PGID" Default="100" Description="Runtime group ID" Type="Variable" Display="always" Required="true" Mask="false">100</Config>
-  <Config Name="Auth Enabled" Target="AUTH_ENABLED" Default="false" Description="Enable built-in login gate" Type="Variable" Display="always" Required="false" Mask="false">false</Config>
-  <Config Name="Session Secret" Target="SESSION_SECRET" Default="" Description="Required when auth is enabled" Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Auth Enabled" Target="AUTH_ENABLED" Default="true" Description="Enable built-in login gate and first-run admin setup" Type="Variable" Display="always" Required="false" Mask="false">true</Config>
+  <Config Name="Session Secret" Target="SESSION_SECRET" Default="" Description="Required when auth is enabled" Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="Root Path" Target="ROOT_PATH" Default="" Description="Reverse proxy sub-path, for example /justpix" Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
 </Container>
