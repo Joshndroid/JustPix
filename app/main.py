@@ -15,6 +15,7 @@ from .auth.dependencies import optional_user, require_user
 from .auth.routes import register_auth_routes
 from .config import settings
 from .scanner import PathSafetyError, classify_media, content_type_for, list_folder, safe_resolve
+from .static_templates import render_static_html, static_version
 from .thumbnailer import get_thumbnail, pregenerate_thumbnails
 
 SECURITY_HEADERS = {
@@ -79,7 +80,7 @@ async def justpix_http_exception_handler(request: Request, exc: HTTPException) -
         body = (
             "<!doctype html><html lang=\"en\"><head>"
             "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-            f"<title>{title}</title><link rel=\"stylesheet\" href=\"{settings.root_path}/static/style.css\">"
+            f"<title>{title}</title><link rel=\"stylesheet\" href=\"{settings.root_path}/static/style.css?v={static_version()}\">"
             "</head><body><main class=\"error-page\">"
             f"<h1>{exc.status_code}</h1><p>{detail}</p>"
             f"<a href=\"{settings.root_path}/browse/\">Back to gallery</a>"
@@ -107,12 +108,10 @@ def _wants_html(request: Request) -> bool:
 def _static_index(request: Request) -> Response:
     if settings.auth_enabled and optional_user(request, settings) is None:
         return RedirectResponse(url=f"{settings.root_path}/login", status_code=303)
-    index = Path(__file__).parent / "static" / "index.html"
-    html = (
-        index.read_text(encoding="utf-8")
-        .replace("__ROOT_PATH__", settings.root_path)
-        .replace("__APP_TITLE__", settings.app_title)
-        .replace("__AUTH_ENABLED__", "true" if settings.auth_enabled else "false")
+    html = render_static_html(
+        "index.html",
+        settings,
+        __AUTH_ENABLED__="true" if settings.auth_enabled else "false",
     )
     return HTMLResponse(html)
 

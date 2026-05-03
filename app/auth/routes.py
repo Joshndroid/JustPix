@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
-from pathlib import Path
 import time
 
 from fastapi import Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
 from app.config import Settings
+from app.static_templates import render_static_html
 from .dependencies import optional_user, require_admin
 from .sessions import create_session_cookie
 from .users import UsersError, authenticate_user, create_initial_admin, create_user, has_users, load_users
@@ -75,10 +75,7 @@ def register_auth_routes(app, settings: Settings) -> None:
             return RedirectResponse(url=_setup_path(settings), status_code=303)
         if optional_user(request, settings):
             return RedirectResponse(url=_browse_path(settings), status_code=303)
-        html = (Path(__file__).resolve().parent.parent / "static" / "login.html").read_text(encoding="utf-8")
-        return HTMLResponse(
-            html.replace("__ROOT_PATH__", settings.root_path).replace("__APP_TITLE__", settings.app_title)
-        )
+        return HTMLResponse(render_static_html("login.html", settings))
 
     @app.post("/login", include_in_schema=False)
     async def login(request: Request, username: str = Form(...), password: str = Form(...)) -> Response:
@@ -109,10 +106,7 @@ def register_auth_routes(app, settings: Settings) -> None:
             return RedirectResponse(url=_browse_path(settings), status_code=303)
         if has_users(settings.users_file):
             return RedirectResponse(url=_login_path(settings), status_code=303)
-        html = (Path(__file__).resolve().parent.parent / "static" / "setup.html").read_text(encoding="utf-8")
-        return HTMLResponse(
-            html.replace("__ROOT_PATH__", settings.root_path).replace("__APP_TITLE__", settings.app_title)
-        )
+        return HTMLResponse(render_static_html("setup.html", settings))
 
     @app.post("/setup", include_in_schema=False)
     async def setup(
@@ -139,10 +133,7 @@ def register_auth_routes(app, settings: Settings) -> None:
     @app.get("/admin", include_in_schema=False)
     def admin_page(request: Request) -> Response:
         require_admin(request, settings)
-        html = (Path(__file__).resolve().parent.parent / "static" / "admin.html").read_text(encoding="utf-8")
-        return HTMLResponse(
-            html.replace("__ROOT_PATH__", settings.root_path).replace("__APP_TITLE__", settings.app_title)
-        )
+        return HTMLResponse(render_static_html("admin.html", settings))
 
     @app.get("/admin/users", include_in_schema=False)
     def admin_users(request: Request) -> Response:

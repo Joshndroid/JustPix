@@ -45,6 +45,7 @@ def test_html_shell_uses_root_path_without_inline_script(monkeypatch, tmp_path: 
     assert response.status_code == 200
     assert 'href="/justpix/static/style.css?v=' in response.text
     assert 'src="/justpix/static/gallery.js?v=' in response.text
+    assert "__STATIC_VERSION__" not in response.text
     assert 'data-root-path="/justpix"' in response.text
     assert "<script>" not in response.text
 
