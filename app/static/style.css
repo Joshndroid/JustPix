@@ -265,13 +265,16 @@ select,
 }
 
 .lightbox {
-  width: calc(100vw - 24px);
-  height: calc(100dvh - 24px);
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
   max-width: none;
   max-height: none;
+  margin: 0;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   background: #080909;
   color: var(--text);
   overflow: hidden;
@@ -286,7 +289,7 @@ select,
   place-items: center;
   width: 100%;
   height: calc(100% - 54px);
-  padding: 46px 54px 12px;
+  padding: 58px 64px 12px;
   overflow: hidden;
 }
 
@@ -565,7 +568,7 @@ select,
   }
 
   .lightbox-stage {
-    padding: 64px 14px 14px;
+    padding: 64px 12px 12px;
   }
 
   .lightbox-close {

@@ -43,8 +43,8 @@ def test_html_shell_uses_root_path_without_inline_script(monkeypatch, tmp_path: 
     response = client.get("/browse/", headers={"accept": "text/html"})
 
     assert response.status_code == 200
-    assert 'href="/justpix/static/style.css"' in response.text
-    assert 'src="/justpix/static/gallery.js"' in response.text
+    assert 'href="/justpix/static/style.css?v=' in response.text
+    assert 'src="/justpix/static/gallery.js?v=' in response.text
     assert 'data-root-path="/justpix"' in response.text
     assert "<script>" not in response.text
 
