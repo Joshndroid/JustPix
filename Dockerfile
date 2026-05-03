@@ -17,6 +17,6 @@ RUN chmod +x /entrypoint.sh
 COPY app/ ./app/
 
 EXPOSE 3000
-VOLUME ["/photos", "/thumbcache", "/config"]
+VOLUME ["/photos", "/data"]
 
 ENTRYPOINT ["/entrypoint.sh"]

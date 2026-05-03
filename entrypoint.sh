@@ -6,6 +6,8 @@ PGID="${PGID:-1000}"
 PORT="${PORT:-3000}"
 ROOT_PATH="${ROOT_PATH:-}"
 TRUSTED_PROXIES="${TRUSTED_PROXIES:-*}"
+THUMB_CACHE_DIR="${THUMB_CACHE_DIR:-/data/thumbcache}"
+CONFIG_DIR="${CONFIG_DIR:-/data/config}"
 
 GROUP_NAME="$(getent group "$PGID" 2>/dev/null | cut -d: -f1 || true)"
 if [ -z "$GROUP_NAME" ]; then
@@ -19,8 +21,8 @@ else
   usermod -o -u "$PUID" -g "$PGID" justpix
 fi
 
-mkdir -p "${THUMB_CACHE_DIR:-/thumbcache}" /config
-chown -R "$PUID:$PGID" "${THUMB_CACHE_DIR:-/thumbcache}" /config
+mkdir -p "$THUMB_CACHE_DIR" "$CONFIG_DIR"
+chown -R "$PUID:$PGID" "$THUMB_CACHE_DIR" "$CONFIG_DIR"
 
 exec gosu justpix uvicorn app.main:app \
   --host 0.0.0.0 \

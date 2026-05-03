@@ -6,13 +6,12 @@ services:
       - "3000:3000"
     volumes:
       - /mnt/user/Photos:/photos:ro
-      - /mnt/user/appdata/justpix/thumbcache:/thumbcache
-      - /mnt/user/appdata/justpix/config:/config
+      - /mnt/userdata/justpix:/data
     environment:
       PUID: "99"
       PGID: "100"
       MEDIA_ROOT: /photos
-      THUMB_CACHE_DIR: /thumbcache
+      THUMB_CACHE_DIR: /data/thumbcache
       APP_TITLE: JustPix
       ROOT_PATH: ""
       TRUSTED_PROXIES: "*"
@@ -20,7 +19,7 @@ services:
       ITEMS_PER_PAGE: "80"
       PREGEN_THUMBS: "false"
       AUTH_ENABLED: "false"
-      USERS_FILE: /config/users.json
+      USERS_FILE: /data/config/users.json
       SESSION_SECRET: change-this-to-a-long-random-string
       COOKIE_SECURE: "false"
     restart: unless-stopped

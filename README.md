@@ -11,8 +11,8 @@ The app never uploads, edits, tags, deletes, or writes metadata to your media li
 - Images, videos, and audio files in one gallery
 - Responsive browser UI with breadcrumbs, sorting, pagination, lazy thumbnails, and a lightbox
 - Native browser playback for video and audio
-- Cached image thumbnails and video poster frames in `/thumbcache`
-- Optional local login gate backed by `/config/users.json`
+- Cached image thumbnails and video poster frames in `/data/thumbcache`
+- Optional local login gate backed by `/data/config/users.json`
 - Reverse proxy support with `ROOT_PATH`
 - Basic security and cache headers
 
@@ -33,11 +33,12 @@ The sample `docker-compose.yml` expects you to edit the host paths before deploy
 ```yaml
 volumes:
   - /mnt/user/Photos:/photos:ro
-  - /mnt/user/appdata/justpix/thumbcache:/thumbcache
-  - /mnt/user/appdata/justpix/config:/config
+  - /mnt/userdata/justpix:/data
 ```
 
-Keep the `/photos` mount read-only with `:ro`.
+Keep the `/photos` mount read-only with `:ro`. The single `/data` mount stores both `config/users.json` and the generated `thumbcache/` folder.
+
+If you previously used separate `/config` and `/thumbcache` mounts, move those folders under `/mnt/userdata/justpix/config` and `/mnt/userdata/justpix/thumbcache`, then replace both mounts with the single `/data` mount.
 
 ## GitHub Container Registry
 
@@ -61,11 +62,10 @@ image: ghcr.io/<owner>/<repo>:latest
 ## Unraid Setup
 
 1. Put this project somewhere Unraid can build it, or build/publish the image from another machine.
-2. Create appdata folders:
+2. Create the appdata folder:
 
 ```text
-/mnt/user/appdata/justpix/config
-/mnt/user/appdata/justpix/thumbcache
+/mnt/userdata/justpix
 ```
 
 3. Map your photo share read-only:
@@ -90,7 +90,7 @@ PGID=100
 | `PUID` | `1000` | Runtime user ID |
 | `PGID` | `1000` | Runtime group ID |
 | `MEDIA_ROOT` | `/photos` | Read-only mounted media folder |
-| `THUMB_CACHE_DIR` | `/thumbcache` | Writable thumbnail cache |
+| `THUMB_CACHE_DIR` | `/data/thumbcache` | Writable thumbnail cache |
 | `APP_TITLE` | `JustPix` | Browser title and header |
 | `ROOT_PATH` | empty | Reverse proxy sub-path such as `/justpix` |
 | `TRUSTED_PROXIES` | `*` | Uvicorn forwarded-header trusted IPs |
@@ -100,7 +100,7 @@ PGID=100
 | `THUMB_QUALITY` | `75` | JPEG thumbnail quality |
 | `PREGEN_THUMBS` | `false` | Generate thumbnails at startup |
 | `AUTH_ENABLED` | `false` | Enable login/session protection |
-| `USERS_FILE` | `/config/users.json` | User account file |
+| `USERS_FILE` | `/data/config/users.json` | User account file |
 | `SESSION_SECRET` | empty | Required when auth is enabled |
 | `SESSION_COOKIE_NAME` | `justpix_session` | Session cookie name |
 | `SESSION_TTL_HOURS` | `168` | Session lifetime |
@@ -120,7 +120,7 @@ docker compose run --rm justpix python -m app.tools.create_user admin --json
 2. Put the output in:
 
 ```text
-/mnt/user/appdata/justpix/config/users.json
+/mnt/userdata/justpix/config/users.json
 ```
 
 3. Set:
@@ -128,7 +128,7 @@ docker compose run --rm justpix python -m app.tools.create_user admin --json
 ```text
 AUTH_ENABLED=true
 SESSION_SECRET=replace-this-with-a-long-random-value
-USERS_FILE=/config/users.json
+USERS_FILE=/data/config/users.json
 ```
 
 Passwords are hashed with PBKDF2-SHA256 and per-user salts. Sessions are signed, expiring, `HttpOnly`, and `SameSite=Lax`. Set `COOKIE_SECURE=true` when JustPix is only accessed over HTTPS.

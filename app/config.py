@@ -65,7 +65,7 @@ def load_settings() -> Settings:
 
     return Settings(
         media_root=Path(os.getenv("MEDIA_ROOT", "/photos")),
-        thumb_cache_dir=Path(os.getenv("THUMB_CACHE_DIR", "/thumbcache")),
+        thumb_cache_dir=Path(os.getenv("THUMB_CACHE_DIR", "/data/thumbcache")),
         app_title=os.getenv("APP_TITLE", "JustPix"),
         root_path=root_path,
         trusted_proxies=os.getenv("TRUSTED_PROXIES", "*"),
@@ -75,7 +75,7 @@ def load_settings() -> Settings:
         thumb_quality=_int_env("THUMB_QUALITY", 75, minimum=1, maximum=95),
         pregen_thumbs=_bool_env("PREGEN_THUMBS", False),
         auth_enabled=auth_enabled,
-        users_file=Path(os.getenv("USERS_FILE", "/config/users.json")),
+        users_file=Path(os.getenv("USERS_FILE", "/data/config/users.json")),
         session_secret=session_secret,
         session_cookie_name=os.getenv("SESSION_COOKIE_NAME", "justpix_session"),
         session_ttl_hours=_int_env("SESSION_TTL_HOURS", 168, minimum=1),
