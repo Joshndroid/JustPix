@@ -122,13 +122,32 @@ function folderCard(folder) {
   card.className = "tile folder-tile";
   card.href = browseUrl(folder.path);
   card.addEventListener("click", (event) => navigate(event, folder.path));
-  card.innerHTML = `
-    <div class="folder-visual"><span></span></div>
-    <div class="tile-meta">
-      <strong>${escapeHtml(folder.name)}</strong>
-      <small>${folder.item_count} items</small>
-    </div>
+
+  const visual = document.createElement("div");
+  visual.className = "folder-visual";
+
+  const previews = (folder.preview_paths || []).slice(0, 4);
+  if (previews.length) {
+    visual.classList.add("has-previews", `preview-count-${previews.length}`);
+    for (const path of previews) {
+      const image = document.createElement("img");
+      image.alt = "";
+      image.loading = "lazy";
+      image.dataset.src = mediaUrl("thumb", path);
+      visual.append(image);
+    }
+  } else {
+    visual.append(document.createElement("span"));
+  }
+
+  const meta = document.createElement("div");
+  meta.className = "tile-meta";
+  meta.innerHTML = `
+    <strong>${escapeHtml(folder.name)}</strong>
+    <small>${folder.item_count} items</small>
   `;
+
+  card.append(visual, meta);
   return card;
 }
 

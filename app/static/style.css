@@ -203,9 +203,11 @@ select,
 
 .folder-visual {
   position: relative;
+  overflow: hidden;
 }
 
-.folder-visual::before {
+.folder-visual:not(.has-previews)::before,
+.folder-visual.has-previews::before {
   content: "";
   position: absolute;
   left: 18%;
@@ -216,7 +218,8 @@ select,
   background: var(--accent-2);
 }
 
-.folder-visual span {
+.folder-visual span,
+.folder-visual.has-previews::after {
   position: absolute;
   left: 13%;
   right: 13%;
@@ -224,6 +227,51 @@ select,
   bottom: 20%;
   border-radius: 8px;
   background: #dcae46;
+}
+
+.folder-visual.has-previews {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 3px;
+  padding: 32% 14% 20%;
+  background: #202426;
+}
+
+.folder-visual.has-previews::before {
+  z-index: 1;
+}
+
+.folder-visual.has-previews::after {
+  content: "";
+  z-index: 1;
+  background: rgba(220, 174, 70, 0.18);
+  border: 2px solid rgba(220, 174, 70, 0.88);
+  pointer-events: none;
+}
+
+.folder-visual.has-previews img {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.folder-visual.preview-count-1 img {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+}
+
+.folder-visual.preview-count-2 img {
+  grid-row: 1 / -1;
+}
+
+.folder-visual.preview-count-3 img:first-child {
+  grid-row: 1 / -1;
 }
 
 .tile-meta {

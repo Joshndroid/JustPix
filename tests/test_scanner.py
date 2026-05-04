@@ -67,6 +67,19 @@ def test_list_folder_excludes_hidden_and_reports_stats(tmp_path: Path) -> None:
     assert listing.stats == {"folders": 1, "images": 1, "videos": 1, "audio": 1}
 
 
+def test_list_folder_includes_folder_preview_paths(tmp_path: Path) -> None:
+    media_root = tmp_path / "photos"
+    touch(media_root / "Album" / "a.jpg")
+    touch(media_root / "Album" / "b.mp4")
+    touch(media_root / "Album" / ".hidden.jpg")
+    touch(media_root / "Album" / "notes.txt")
+    touch(media_root / "Album" / "Subfolder" / "nested.jpg")
+
+    listing = list_folder(media_root)
+
+    assert listing.folders[0].preview_paths == ["Album/a.jpg", "Album/b.mp4"]
+
+
 def test_list_folder_paginates_media(tmp_path: Path) -> None:
     media_root = tmp_path / "photos"
     for name in ["a.jpg", "b.jpg", "c.jpg"]:

@@ -30,6 +30,7 @@ class FolderEntry:
     path: str
     mtime: float
     item_count: int
+    preview_paths: list[str]
 
 
 @dataclass(frozen=True)
@@ -126,6 +127,31 @@ def _folder_item_count(path: Path) -> int:
         return 0
 
 
+def _folder_preview_paths(media_root: Path, folder: Path, *, limit: int = 4) -> list[str]:
+    previews: list[str] = []
+    try:
+        children = sorted(folder.iterdir(), key=lambda child: child.name.lower())
+    except OSError:
+        return previews
+
+    for child in children:
+        if len(previews) >= limit:
+            break
+        if child.name.startswith("."):
+            continue
+        try:
+            child.resolve(strict=True).relative_to(media_root)
+        except (OSError, ValueError):
+            continue
+        if not child.is_file() or classify_media(child) == "other":
+            continue
+        relative = relative_media_path(media_root, child)
+        if _is_hidden_relative(Path(relative)):
+            continue
+        previews.append(relative)
+    return previews
+
+
 def _parent_for(relative_path: str) -> str | None:
     if not relative_path:
         return None
@@ -193,6 +219,7 @@ def list_folder(
                     path=child_relative,
                     mtime=stat.st_mtime,
                     item_count=_folder_item_count(child),
+                    preview_paths=_folder_preview_paths(resolved_root, child),
                 )
             )
         elif child.is_file():
