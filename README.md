@@ -16,6 +16,8 @@ The app never uploads, edits, tags, deletes, or writes metadata to your media li
 - Reverse proxy support with `ROOT_PATH`
 - Basic security and cache headers
 
+![ScreenShot](https://raw.githubusercontent.com/Joshndroid/JustPix/refs/heads/main/justpix-screenshot.png)
+
 ## Quick Start
 
 ```bash
