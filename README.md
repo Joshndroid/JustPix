@@ -71,8 +71,11 @@ image: ghcr.io/<owner>/<repo>:latest
 3. Map your photo share read-only:
 
 ```text
-/mnt/user/Photos -> /photos:ro
+/mnt/user/Photos -> /photos
 ```
+
+Now in the dropdown box that appears make sure you set it to read only
+
 
 4. Use Unraid defaults unless your share requires another user:
 
