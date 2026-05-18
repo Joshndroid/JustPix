@@ -219,3 +219,8 @@ python -m pytest -q
 ```
 
 The test suite covers safe path resolution, media listing, range requests, auth/session behavior, thumbnail cache behavior, cache/security headers, and root path HTML generation.
+
+## AI Note
+
+AI was used to assist in getting this together.
+It's up to you whether you wish to use/continue.
