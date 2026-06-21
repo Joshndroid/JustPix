@@ -57,6 +57,8 @@ ghcr.io/<owner>/<repo>:sha-<commit>
 
 Published images include an SPDX software bill of materials, maximum-level BuildKit provenance, and a GitHub artifact attestation bound to the image digest. Prereleases do not move the `latest` tag.
 
+The application version is defined in `app/version.py`. Update `__version__` there when preparing a release.
+
 For this repository, replace your compose `build: .` line with an image once the package exists:
 
 ```yaml

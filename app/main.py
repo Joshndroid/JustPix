@@ -17,6 +17,7 @@ from .config import settings
 from .scanner import PathSafetyError, classify_media, content_type_for, list_folder, safe_resolve
 from .static_templates import render_static_html, static_version
 from .thumbnailer import get_thumbnail, pregenerate_thumbnails
+from .version import __version__
 
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -49,7 +50,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title=settings.app_title, root_path=settings.root_path, lifespan=lifespan)
+app = FastAPI(
+    title=settings.app_title,
+    version=__version__,
+    root_path=settings.root_path,
+    lifespan=lifespan,
+)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 register_auth_routes(app, settings)
 
@@ -92,7 +98,7 @@ async def justpix_http_exception_handler(request: Request, exc: HTTPException) -
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "version": __version__}
 
 
 @app.get("/", include_in_schema=False)

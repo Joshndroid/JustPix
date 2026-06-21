@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 import app.config
 import app.main
+from app.version import __version__
 
 
 def make_client(monkeypatch, media_root: Path) -> TestClient:
@@ -26,7 +27,8 @@ def test_health_and_browse_json(monkeypatch, tmp_path: Path) -> None:
 
     client = make_client(monkeypatch, media_root)
 
-    assert client.get("/health").json() == {"status": "ok"}
+    assert client.get("/health").json() == {"status": "ok", "version": __version__}
+    assert app.main.app.version == __version__
     response = client.get("/browse/", headers={"accept": "application/json"})
     assert response.status_code == 200
     assert response.json()["media"][0]["name"] == "image.jpg"
