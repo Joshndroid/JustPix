@@ -77,17 +77,29 @@ def safe_resolve(media_root: Path, requested_path: str = "") -> Path:
     if "\x00" in decoded:
         raise PathSafetyError("Invalid path")
 
-    relative = Path(decoded)
-    if relative.is_absolute() or any(part in {"..", ""} for part in relative.parts):
-        if decoded not in {"", "."}:
-            raise PathSafetyError("Path escapes media root")
-
     root = media_root.resolve(strict=True)
-    target = (root / relative).resolve(strict=True)
-    try:
-        target.relative_to(root)
-    except ValueError as exc:
-        raise PathSafetyError("Path escapes media root") from exc
+    if decoded in {"", "."}:
+        return root
+
+    components = decoded.split("/")
+    if any(component in {"", ".", ".."} for component in components):
+        raise PathSafetyError("Path escapes media root")
+
+    # Do not join request-controlled components onto a filesystem path. Besides
+    # making the containment guarantee explicit to static analysis, selecting an
+    # existing entry by name prevents traversal syntax from becoming a path
+    # expression in the first place.
+    target = root
+    for component in components:
+        try:
+            child = next(entry for entry in target.iterdir() if entry.name == component)
+            target = child.resolve(strict=True)
+            target.relative_to(root)
+        except StopIteration as exc:
+            raise FileNotFoundError(component) from exc
+        except ValueError as exc:
+            raise PathSafetyError("Path escapes media root") from exc
+
     return target
 
 

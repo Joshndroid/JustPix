@@ -28,6 +28,33 @@ def test_safe_resolve_rejects_encoded_traversal(tmp_path: Path) -> None:
         safe_resolve(media_root, "%2e%2e/outside.jpg")
 
 
+@pytest.mark.parametrize(
+    "requested_path",
+    [
+        "album//photo.jpg",
+        "album/./photo.jpg",
+        "album/%2e/photo.jpg",
+        "album/%252e%252e/photo.jpg",
+        "album\\..\\photo.jpg",
+        "album/\x00/photo.jpg",
+    ],
+)
+def test_safe_resolve_rejects_unsafe_components(tmp_path: Path, requested_path: str) -> None:
+    media_root = tmp_path / "photos"
+    media_root.mkdir()
+
+    with pytest.raises(PathSafetyError):
+        safe_resolve(media_root, requested_path)
+
+
+def test_safe_resolve_walks_nested_existing_entries(tmp_path: Path) -> None:
+    media_root = tmp_path / "photos"
+    expected = media_root / "Album" / "Holiday photo.jpg"
+    touch(expected)
+
+    assert safe_resolve(media_root, "Album/Holiday%20photo.jpg") == expected.resolve()
+
+
 def test_safe_resolve_rejects_symlink_escape(tmp_path: Path) -> None:
     media_root = tmp_path / "photos"
     outside = tmp_path / "outside"
