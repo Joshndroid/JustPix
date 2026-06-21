@@ -8,7 +8,9 @@ from fastapi.testclient import TestClient
 
 import app.config
 import app.main
+import app.auth.routes
 from app.auth.passwords import hash_password, verify_password
+from app.auth.users import UsersError
 
 
 def make_client(monkeypatch, media_root: Path, users_file: Path) -> TestClient:
@@ -132,6 +134,27 @@ def test_first_run_setup_creates_admin_and_logs_in(monkeypatch, tmp_path: Path) 
     assert client.get("/browse/", headers={"accept": "application/json"}).status_code == 200
 
 
+def test_setup_does_not_expose_user_exception_details(monkeypatch, tmp_path: Path) -> None:
+    media_root = tmp_path / "photos"
+    media_root.mkdir()
+    users_file = tmp_path / "config" / "users.json"
+    client = make_client(monkeypatch, media_root, users_file)
+    internal_detail = f"failed to write {users_file}"
+
+    def fail_create_initial_admin(*args, **kwargs):
+        raise UsersError(internal_detail)
+
+    monkeypatch.setattr(app.auth.routes, "create_initial_admin", fail_create_initial_admin)
+    response = client.post(
+        "/setup",
+        data={"username": "owner", "display_name": "Owner", "password": "long-secret"},
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Unable to complete setup with the provided user details"}
+    assert internal_detail not in response.text
+
+
 def test_admin_can_create_users_manually(monkeypatch, tmp_path: Path) -> None:
     media_root = tmp_path / "photos"
     media_root.mkdir()
@@ -164,6 +187,42 @@ def test_admin_can_create_users_manually(monkeypatch, tmp_path: Path) -> None:
     assert payload["user"]["role"] == "user"
     users_payload = json.loads(users_file.read_text(encoding="utf-8"))
     assert [user["username"] for user in users_payload["users"]] == ["admin", "viewer"]
+
+
+def test_admin_user_creation_does_not_expose_exception_details(monkeypatch, tmp_path: Path) -> None:
+    media_root = tmp_path / "photos"
+    media_root.mkdir()
+    users_file = tmp_path / "users.json"
+    users_file.write_text(
+        json.dumps(
+            {
+                "users": [
+                    {
+                        "username": "admin",
+                        "password_hash": hash_password("admin-secret"),
+                        "role": "admin",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    client = make_client(monkeypatch, media_root, users_file)
+    client.post("/login", data={"username": "admin", "password": "admin-secret"})
+    internal_detail = f"failed to replace {users_file}"
+
+    def fail_create_user(*args, **kwargs):
+        raise UsersError(internal_detail)
+
+    monkeypatch.setattr(app.auth.routes, "create_user", fail_create_user)
+    response = client.post(
+        "/admin/users",
+        data={"username": "viewer", "password": "viewer-secret", "role": "user"},
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Unable to create user with the provided details"}
+    assert internal_detail not in response.text
 
 
 def test_non_admin_cannot_create_users(monkeypatch, tmp_path: Path) -> None:

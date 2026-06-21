@@ -123,8 +123,11 @@ def register_auth_routes(app, settings: Settings) -> None:
                 password=password,
                 display_name=display_name or None,
             )
-        except UsersError as exc:
-            return JSONResponse({"detail": str(exc)}, status_code=400)
+        except UsersError:
+            return JSONResponse(
+                {"detail": "Unable to complete setup with the provided user details"},
+                status_code=400,
+            )
 
         response = RedirectResponse(url=_browse_path(settings), status_code=303)
         _set_session_cookie(response, settings, user.username)
@@ -166,8 +169,11 @@ def register_auth_routes(app, settings: Settings) -> None:
                 display_name=display_name or None,
                 role=role,
             )
-        except UsersError as exc:
-            return JSONResponse({"detail": str(exc)}, status_code=400)
+        except UsersError:
+            return JSONResponse(
+                {"detail": "Unable to create user with the provided details"},
+                status_code=400,
+            )
         return JSONResponse(
             {
                 "user": {
