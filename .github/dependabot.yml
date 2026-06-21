@@ -8,6 +8,10 @@ updates:
       time: "08:00"
       timezone: "Australia/Brisbane"
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "pip"
     directory: "/"
@@ -17,6 +21,10 @@ updates:
       time: "08:30"
       timezone: "Australia/Brisbane"
     open-pull-requests-limit: 5
+    groups:
+      python-runtime:
+        patterns:
+          - "*"
 
   - package-ecosystem: "docker"
     directory: "/"
@@ -26,3 +34,7 @@ updates:
       time: "09:00"
       timezone: "Australia/Brisbane"
     open-pull-requests-limit: 5
+    groups:
+      container-base-images:
+        patterns:
+          - "*"

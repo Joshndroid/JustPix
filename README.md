@@ -44,16 +44,18 @@ If you previously used separate `/config` and `/thumbcache` mounts, move those f
 
 ## GitHub Container Registry
 
-The GitHub Actions workflow builds the Docker image on pull requests and publishes it to GitHub Container Registry on pushes to `main` and version tags like `v1.0.0`.
+GitHub Actions tests Python 3.12 and 3.14 and performs a blocking container vulnerability scan on pull requests and pushes to `main`. Images are published to GitHub Container Registry only when a GitHub Release with a semantic version tag such as `v1.0.0` is published. A manual release-workflow run tests and scans the image but does not publish it.
 
 Published image tags include:
 
 ```text
 ghcr.io/<owner>/<repo>:latest
-ghcr.io/<owner>/<repo>:main
 ghcr.io/<owner>/<repo>:v1.0.0
+ghcr.io/<owner>/<repo>:1.0
 ghcr.io/<owner>/<repo>:sha-<commit>
 ```
+
+Published images include an SPDX software bill of materials, maximum-level BuildKit provenance, and a GitHub artifact attestation bound to the image digest. Prereleases do not move the `latest` tag.
 
 For this repository, replace your compose `build: .` line with an image once the package exists:
 
@@ -217,7 +219,14 @@ JustPix does not transcode. Browser playback depends on the browser and codec.
 ## Development Checks
 
 ```bash
+python -m pip install --require-hashes -r requirements.txt
 python -m pytest -q
+```
+
+Direct dependencies live in `requirements.in`; `requirements.txt` is the generated, hash-locked dependency graph used by CI and the container build. Regenerate it for the oldest supported Python version after changing direct dependencies:
+
+```bash
+uv pip compile requirements.in --python-version 3.12 --universal --generate-hashes --no-emit-index-url --output-file requirements.txt
 ```
 
 The test suite covers safe path resolution, media listing, range requests, auth/session behavior, thumbnail cache behavior, cache/security headers, and root path HTML generation.
