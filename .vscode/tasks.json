@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Docker: build and push JustPix image",
+      "type": "shell",
+      "command": "IMAGE=ghcr.io/joshndroid/justpix; VERSION=$(python3 -c 'from app.version import __version__; print(__version__)'); docker build -t \"$IMAGE:latest\" -t \"$IMAGE:$VERSION\" . && docker push \"$IMAGE:latest\" && docker push \"$IMAGE:$VERSION\"",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: build JustPix image",
+      "type": "shell",
+      "command": "IMAGE=ghcr.io/joshndroid/justpix; VERSION=$(python3 -c 'from app.version import __version__; print(__version__)'); docker build -t \"$IMAGE:latest\" -t \"$IMAGE:$VERSION\" .",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: push JustPix image",
+      "type": "shell",
+      "command": "IMAGE=ghcr.io/joshndroid/justpix; VERSION=$(python3 -c 'from app.version import __version__; print(__version__)'); docker push \"$IMAGE:latest\" && docker push \"$IMAGE:$VERSION\"",
+      "problemMatcher": []
+    }
+  ]
+}
