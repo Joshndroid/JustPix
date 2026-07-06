@@ -12,6 +12,12 @@
       "problemMatcher": []
     },
     {
+      "label": "Docker: login to GitHub Container Registry",
+      "type": "shell",
+      "command": "docker login ghcr.io -u Joshndroid",
+      "problemMatcher": []
+    },
+    {
       "label": "Docker: build JustPix image",
       "type": "shell",
       "command": "IMAGE=ghcr.io/joshndroid/justpix; VERSION=$(python3 -c 'from app.version import __version__; print(__version__)'); docker build -t \"$IMAGE:latest\" -t \"$IMAGE:$VERSION\" .",
