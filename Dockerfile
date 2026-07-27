@@ -1,6 +1,8 @@
 FROM python:3.14-slim@sha256:cea0e6040540fb2b965b6e7fb5ffa00871e632eef63719f0ea54bca189ce14a6
 
+ARG APT_CACHE_BUST=manual
 RUN apt-get update \
+    && echo "APT cache bust: ${APT_CACHE_BUST}" \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
     ffmpeg \

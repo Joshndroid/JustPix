@@ -59,6 +59,8 @@ jobs:
           context: .
           load: true
           tags: justpix:ci
+          build-args: |
+            APT_CACHE_BUST=${{ github.run_id }}
           provenance: false
           sbom: false
           cache-from: type=gha
