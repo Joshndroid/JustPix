@@ -13,7 +13,8 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --require-hashes -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt \
+    && pip uninstall -y msgpack setuptools
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
