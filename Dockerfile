@@ -14,7 +14,8 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --require-hashes -r requirements.txt \
-    && pip uninstall -y msgpack setuptools
+    && pip uninstall -y msgpack setuptools \
+    && rm -f /usr/local/lib/python3.14/sbom.spdx.json
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
