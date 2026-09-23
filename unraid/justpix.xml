@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>JustPix</Name>
-  <Repository>justpix:latest</Repository>
-  <Registry></Registry>
+  <Repository>ghcr.io/joshndroid/justpix:latest</Repository>
+  <Registry>https://ghcr.io</Registry>
   <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/your-org/justpix</Support>
-  <Project>https://github.com/your-org/justpix</Project>
+  <Support>https://github.com/Joshndroid/JustPix/issues</Support>
+  <Project>https://github.com/Joshndroid/JustPix</Project>
   <Overview>Read-only local photo, video, and audio gallery.</Overview>
   <Category>MediaApp:Photos</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
@@ -17,6 +17,6 @@
   <Config Name="PUID" Target="PUID" Default="99" Description="Runtime user ID" Type="Variable" Display="always" Required="true" Mask="false">99</Config>
   <Config Name="PGID" Target="PGID" Default="100" Description="Runtime group ID" Type="Variable" Display="always" Required="true" Mask="false">100</Config>
   <Config Name="Auth Enabled" Target="AUTH_ENABLED" Default="true" Description="Enable built-in login gate and first-run admin setup" Type="Variable" Display="always" Required="false" Mask="false">true</Config>
-  <Config Name="Session Secret" Target="SESSION_SECRET" Default="" Description="Required when auth is enabled" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Session Secret" Target="SESSION_SECRET" Default="" Description="Optional override; when blank, JustPix generates and persists a secure secret under /data/config" Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
   <Config Name="Root Path" Target="ROOT_PATH" Default="" Description="Reverse proxy sub-path, for example /justpix" Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
 </Container>

@@ -5,12 +5,21 @@ from pathlib import Path
 import json
 
 from fastapi.testclient import TestClient
+import pytest
 
 import app.config
 import app.main
 import app.auth.routes
 from app.auth.passwords import hash_password, verify_password
 from app.auth.users import UsersError
+
+
+def test_documented_placeholder_session_secrets_are_rejected(monkeypatch) -> None:
+    monkeypatch.setenv("AUTH_ENABLED", "true")
+    monkeypatch.setenv("SESSION_SECRET", "change-this-to-a-long-random-string")
+
+    with pytest.raises(ValueError, match="placeholder"):
+        app.config.load_settings()
 
 
 def make_client(monkeypatch, media_root: Path, users_file: Path) -> TestClient:

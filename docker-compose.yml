@@ -20,6 +20,5 @@ services:
       PREGEN_THUMBS: "false"
       AUTH_ENABLED: "true"
       USERS_FILE: /data/config/users.json
-      SESSION_SECRET: change-this-to-a-long-random-string
       COOKIE_SECURE: "false"
     restart: unless-stopped

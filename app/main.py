@@ -16,7 +16,7 @@ from .auth.routes import register_auth_routes
 from .config import settings
 from .scanner import PathSafetyError, classify_media, content_type_for, list_folder, safe_resolve
 from .static_templates import render_static_html, static_version
-from .thumbnailer import get_thumbnail, pregenerate_thumbnails
+from .thumbnailer import get_thumbnail, pregenerate_thumbnails, prune_legacy_thumbnail_cache
 from .version import __version__
 
 SECURITY_HEADERS = {
@@ -40,6 +40,7 @@ SECURITY_HEADERS = {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings.thumb_cache_dir.mkdir(parents=True, exist_ok=True)
+    prune_legacy_thumbnail_cache(settings.thumb_cache_dir)
     if settings.pregen_thumbs:
         pregenerate_thumbnails(
             settings.media_root,

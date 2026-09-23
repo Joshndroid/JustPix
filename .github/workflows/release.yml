@@ -122,7 +122,7 @@ jobs:
           labels: |
             org.opencontainers.image.title=JustPix
             org.opencontainers.image.description=Read-only local photo, video, and audio gallery
-            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.licenses=GPL-3.0-only
 
       - name: Build and publish image
         id: build

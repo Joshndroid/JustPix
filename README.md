@@ -49,10 +49,10 @@ GitHub Actions tests Python 3.12 and 3.14 and performs a blocking container vuln
 Published image tags include:
 
 ```text
-ghcr.io/<owner>/<repo>:latest
-ghcr.io/<owner>/<repo>:v1.0.0
-ghcr.io/<owner>/<repo>:1.0
-ghcr.io/<owner>/<repo>:sha-<commit>
+ghcr.io/joshndroid/justpix:latest
+ghcr.io/joshndroid/justpix:v1.0.0
+ghcr.io/joshndroid/justpix:1.0
+ghcr.io/joshndroid/justpix:sha-<commit>
 ```
 
 Published images include an SPDX software bill of materials, maximum-level BuildKit provenance, and a GitHub artifact attestation bound to the image digest. Prereleases do not move the `latest` tag.
@@ -62,7 +62,7 @@ The application version is defined in `app/version.py` using the release-tag for
 For this repository, replace your compose `build: .` line with an image once the package exists:
 
 ```yaml
-image: ghcr.io/<owner>/<repo>:latest
+image: ghcr.io/joshndroid/justpix:latest
 ```
 
 ## Unraid Setup
@@ -110,7 +110,8 @@ PGID=100
 | `PREGEN_THUMBS` | `false` | Generate thumbnails at startup |
 | `AUTH_ENABLED` | `true` | Enable login/session protection |
 | `USERS_FILE` | `/data/config/users.json` | User account file |
-| `SESSION_SECRET` | empty | Required when auth is enabled |
+| `SESSION_SECRET` | generated | Optional override for the signed-session secret |
+| `SESSION_SECRET_FILE` | `/data/config/session_secret` | Persisted generated secret used by the container entrypoint |
 | `SESSION_COOKIE_NAME` | `justpix_session` | Session cookie name |
 | `SESSION_TTL_HOURS` | `168` | Session lifetime |
 | `COOKIE_SECURE` | `false` | Set `true` when serving only over HTTPS |
@@ -118,12 +119,16 @@ PGID=100
 
 ## Optional Auth
 
-Auth is enabled by default. Set a long random `SESSION_SECRET` before first start:
+Auth is enabled by default. When the container starts without `SESSION_SECRET`, it generates a secure secret once and stores it in `/data/config/session_secret`. The `/data` volume preserves that secret across restarts.
+
+You can instead supply your own long random value:
 
 ```text
 AUTH_ENABLED=true
-SESSION_SECRET=replace-this-with-a-long-random-value
+SESSION_SECRET=<your-long-random-value>
 ```
+
+The documented placeholder values from earlier releases are rejected at startup.
 
 On first launch, if `/data/config/users.json` does not exist or has no users, JustPix opens a setup page. The first user created there is assigned the `admin` role automatically. After that, public signup is closed.
 

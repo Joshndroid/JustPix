@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import hashlib
+import re
 import subprocess
 import tempfile
 
@@ -17,27 +18,67 @@ except Exception:
 from .scanner import classify_media
 
 
-def cache_key(path: Path) -> str:
+LEGACY_CACHE_RE = re.compile(r"^[0-9a-f]{40}\.jpg$")
+
+
+def _source_key(path: Path) -> str:
+    return hashlib.sha1(str(path.resolve(strict=True)).encode("utf-8")).hexdigest()
+
+
+def cache_key(path: Path, *, size: int = 320, quality: int = 75) -> str:
     stat = path.stat()
-    payload = f"{path.resolve(strict=True)}:{stat.st_mtime_ns}:{stat.st_size}".encode("utf-8")
+    payload = f"{stat.st_mtime_ns}:{stat.st_size}:{size}:{quality}".encode("utf-8")
     return hashlib.sha1(payload).hexdigest()
 
 
-def thumbnail_path(cache_dir: Path, source_path: Path) -> Path:
-    return cache_dir / f"{cache_key(source_path)}.jpg"
+def thumbnail_path(cache_dir: Path, source_path: Path, *, size: int = 320, quality: int = 75) -> Path:
+    return cache_dir / f"v2-{_source_key(source_path)}-{cache_key(source_path, size=size, quality=quality)}.jpg"
 
 
-def fallback_thumbnail(cache_dir: Path, label: str = "MEDIA", *, size: int = 320) -> Path:
+def _remove_other_variants(cache_dir: Path, pattern: str, keep: Path) -> None:
+    for candidate in cache_dir.glob(pattern):
+        if candidate == keep or not candidate.is_file():
+            continue
+        try:
+            candidate.unlink()
+        except OSError:
+            continue
+
+
+def prune_legacy_thumbnail_cache(cache_dir: Path) -> None:
+    """Remove cache files created before thumbnail settings were part of the key."""
+    if not cache_dir.exists():
+        return
+    legacy_fallbacks = {"fallback-audio.jpg", "fallback-file.jpg", "fallback-image.jpg", "fallback-video.jpg"}
+    for candidate in cache_dir.iterdir():
+        if not candidate.is_file():
+            continue
+        if LEGACY_CACHE_RE.fullmatch(candidate.name) or candidate.name in legacy_fallbacks:
+            try:
+                candidate.unlink()
+            except OSError:
+                continue
+
+
+def fallback_thumbnail(
+    cache_dir: Path,
+    label: str = "MEDIA",
+    *,
+    size: int = 320,
+    quality: int = 75,
+) -> Path:
     cache_dir.mkdir(parents=True, exist_ok=True)
-    target = cache_dir / f"fallback-{label.lower()}.jpg"
+    target = cache_dir / f"fallback-{label.lower()}-{size}-{quality}.jpg"
     if target.exists():
+        _remove_other_variants(cache_dir, f"fallback-{label.lower()}-*.jpg", target)
         return target
     image = Image.new("RGB", (size, size), "#262626")
     draw = ImageDraw.Draw(image)
     text = label.upper()[:12]
     box = draw.textbbox((0, 0), text)
     draw.text(((size - (box[2] - box[0])) / 2, (size - (box[3] - box[1])) / 2), text, fill="#eeeeee")
-    image.save(target, "JPEG", quality=75)
+    image.save(target, "JPEG", quality=quality)
+    _remove_other_variants(cache_dir, f"fallback-{label.lower()}-*.jpg", target)
     return target
 
 
@@ -108,20 +149,24 @@ def _video_duration(source_path: Path) -> float | None:
 def get_thumbnail(source_path: Path, cache_dir: Path, *, size: int = 320, quality: int = 75) -> Path:
     media_type = classify_media(source_path)
     if media_type == "audio":
-        return fallback_thumbnail(cache_dir, "AUDIO", size=size)
+        return fallback_thumbnail(cache_dir, "AUDIO", size=size, quality=quality)
     if media_type not in {"image", "video"}:
-        return fallback_thumbnail(cache_dir, "FILE", size=size)
+        return fallback_thumbnail(cache_dir, "FILE", size=size, quality=quality)
 
-    target = thumbnail_path(cache_dir, source_path)
+    target = thumbnail_path(cache_dir, source_path, size=size, quality=quality)
     if target.exists():
+        _remove_other_variants(cache_dir, f"v2-{_source_key(source_path)}-*.jpg", target)
         return target
 
     try:
         if media_type == "image":
-            return _image_thumbnail(source_path, target, size=size, quality=quality)
-        return _video_thumbnail(source_path, target, size=size, quality=quality)
+            thumbnail = _image_thumbnail(source_path, target, size=size, quality=quality)
+        else:
+            thumbnail = _video_thumbnail(source_path, target, size=size, quality=quality)
+        _remove_other_variants(cache_dir, f"v2-{_source_key(source_path)}-*.jpg", target)
+        return thumbnail
     except Exception:
-        return fallback_thumbnail(cache_dir, media_type, size=size)
+        return fallback_thumbnail(cache_dir, media_type, size=size, quality=quality)
 
 
 def pregenerate_thumbnails(media_root: Path, cache_dir: Path, *, size: int, quality: int) -> None:

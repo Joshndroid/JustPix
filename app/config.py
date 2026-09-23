@@ -5,6 +5,12 @@ from pathlib import Path
 import os
 
 
+INSECURE_SESSION_SECRETS = {
+    "change-this-to-a-long-random-string",
+    "replace-this-with-a-long-random-value",
+}
+
+
 def _bool_env(name: str, default: bool) -> bool:
     value = os.getenv(name)
     if value is None:
@@ -62,6 +68,8 @@ def load_settings() -> Settings:
     session_secret = os.getenv("SESSION_SECRET", "")
     if auth_enabled and not session_secret:
         raise ValueError("SESSION_SECRET is required when AUTH_ENABLED=true")
+    if auth_enabled and session_secret in INSECURE_SESSION_SECRETS:
+        raise ValueError("SESSION_SECRET must not use a documented placeholder value")
 
     return Settings(
         media_root=Path(os.getenv("MEDIA_ROOT", "/photos")),

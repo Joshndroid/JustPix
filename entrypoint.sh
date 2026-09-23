@@ -8,6 +8,9 @@ ROOT_PATH="${ROOT_PATH:-}"
 TRUSTED_PROXIES="${TRUSTED_PROXIES:-*}"
 THUMB_CACHE_DIR="${THUMB_CACHE_DIR:-/data/thumbcache}"
 CONFIG_DIR="${CONFIG_DIR:-/data/config}"
+AUTH_ENABLED="${AUTH_ENABLED:-true}"
+SESSION_SECRET="${SESSION_SECRET:-}"
+SESSION_SECRET_FILE="${SESSION_SECRET_FILE:-$CONFIG_DIR/session_secret}"
 
 GROUP_NAME="$(getent group "$PGID" 2>/dev/null | cut -d: -f1 || true)"
 if [ -z "$GROUP_NAME" ]; then
@@ -22,6 +25,31 @@ else
 fi
 
 mkdir -p "$THUMB_CACHE_DIR" "$CONFIG_DIR"
+
+case "$(printf '%s' "$AUTH_ENABLED" | tr '[:upper:]' '[:lower:]')" in
+  0|false|no|off)
+    ;;
+  *)
+    case "$SESSION_SECRET" in
+      change-this-to-a-long-random-string|replace-this-with-a-long-random-value)
+        echo "Refusing to start with an insecure placeholder SESSION_SECRET" >&2
+        exit 1
+        ;;
+    esac
+
+    if [ -z "$SESSION_SECRET" ]; then
+      if [ -s "$SESSION_SECRET_FILE" ]; then
+        IFS= read -r SESSION_SECRET < "$SESSION_SECRET_FILE"
+      else
+        umask 077
+        SESSION_SECRET="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+        printf '%s\n' "$SESSION_SECRET" > "$SESSION_SECRET_FILE"
+      fi
+      export SESSION_SECRET
+    fi
+    ;;
+esac
+
 chown -R "$PUID:$PGID" "$THUMB_CACHE_DIR" "$CONFIG_DIR"
 
 exec gosu justpix uvicorn app.main:app \
