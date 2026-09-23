@@ -1,3 +1,3 @@
 """Single source of truth for the JustPix version."""
 
-__version__ = "v1.5.8"
+__version__ = "v1.6.0"
