@@ -6,6 +6,7 @@ const state = {
   listing: null,
   media: [],
   activeIndex: 0,
+  lightboxPaging: false,
   touchStartX: null,
 };
 
@@ -21,6 +22,8 @@ const nextPage = document.getElementById("nextPage");
 const lightbox = document.getElementById("lightbox");
 const lightboxStage = document.getElementById("lightboxStage");
 const lightboxCaption = document.getElementById("lightboxCaption");
+const prevItem = document.getElementById("prevItem");
+const nextItem = document.getElementById("nextItem");
 const logoutForm = document.getElementById("logoutForm");
 const adminLink = document.getElementById("adminLink");
 
@@ -39,6 +42,14 @@ function browseUrl(path) {
   return `${state.rootPath}/browse/${encoded}`;
 }
 
+function galleryUrl(path, page = 1) {
+  const url = new URL(browseUrl(path), location.origin);
+  if (page > 1) {
+    url.searchParams.set("page", String(page));
+  }
+  return `${url.pathname}${url.search}`;
+}
+
 function currentPathFromLocation() {
   const prefix = `${state.rootPath}/browse/`;
   if (!location.pathname.startsWith(prefix)) {
@@ -47,29 +58,39 @@ function currentPathFromLocation() {
   return decodeURIComponent(location.pathname.slice(prefix.length));
 }
 
-async function loadFolder(path = state.currentPath, { push = false, page = 1 } = {}) {
-  state.currentPath = path || "";
-  state.page = page;
-  const query = new URLSearchParams({ sort: state.sort, page: String(state.page) });
-  const response = await fetch(`${browseUrl(state.currentPath)}?${query}`, {
+function currentPageFromLocation() {
+  const page = Number.parseInt(new URLSearchParams(location.search).get("page") || "1", 10);
+  return Number.isSafeInteger(page) && page > 0 ? page : 1;
+}
+
+async function loadFolder(path = state.currentPath, { push = false, replace = false, page = 1 } = {}) {
+  const targetPath = path || "";
+  const targetPage = Math.max(1, page);
+  const query = new URLSearchParams({ sort: state.sort, page: String(targetPage) });
+  const response = await fetch(`${browseUrl(targetPath)}?${query}`, {
     headers: { Accept: "application/json" },
   });
   if (response.status === 401) {
     location.href = `${state.rootPath}/login`;
-    return;
+    return false;
   }
   if (!response.ok) {
     grid.innerHTML = "";
     emptyState.textContent = "Folder unavailable.";
     emptyState.hidden = false;
-    return;
+    return false;
   }
+  state.currentPath = targetPath;
+  state.page = targetPage;
   state.listing = await response.json();
   state.media = state.listing.media || [];
   if (push) {
-    history.pushState({ path: state.currentPath }, "", browseUrl(state.currentPath));
+    history.pushState({ path: state.currentPath, page: state.page }, "", galleryUrl(state.currentPath, state.page));
+  } else if (replace) {
+    history.replaceState({ path: state.currentPath, page: state.page }, "", galleryUrl(state.currentPath, state.page));
   }
   render();
+  return true;
 }
 
 function render() {
@@ -242,14 +263,44 @@ function renderLightbox() {
   }
   lightboxStage.append(element);
   lightboxCaption.textContent = item.name;
+  prevItem.disabled = state.activeIndex === 0 && !state.listing.has_previous;
+  nextItem.disabled = state.activeIndex === state.media.length - 1 && !state.listing.has_next;
 }
 
-function stepLightbox(delta) {
-  if (!state.media.length) {
+async function stepLightbox(delta) {
+  if (!state.media.length || state.lightboxPaging) {
     return;
   }
-  state.activeIndex = (state.activeIndex + delta + state.media.length) % state.media.length;
-  renderLightbox();
+
+  const targetIndex = state.activeIndex + delta;
+  if (targetIndex >= 0 && targetIndex < state.media.length) {
+    state.activeIndex = targetIndex;
+    renderLightbox();
+    return;
+  }
+
+  const canChangePage = delta > 0 ? state.listing.has_next : state.listing.has_previous;
+  if (!canChangePage) {
+    return;
+  }
+
+  state.lightboxPaging = true;
+  prevItem.disabled = true;
+  nextItem.disabled = true;
+  try {
+    const loaded = await loadFolder(state.currentPath, {
+      push: true,
+      page: state.page + (delta > 0 ? 1 : -1),
+    });
+    if (!loaded || !state.media.length) {
+      lightbox.close();
+      return;
+    }
+    state.activeIndex = delta > 0 ? 0 : state.media.length - 1;
+    renderLightbox();
+  } finally {
+    state.lightboxPaging = false;
+  }
 }
 
 function escapeHtml(value) {
@@ -277,14 +328,14 @@ function formatSize(bytes) {
 sortSelect.addEventListener("change", () => {
   state.sort = sortSelect.value;
   localStorage.setItem("justpix-sort", state.sort);
-  loadFolder(state.currentPath, { page: 1 });
+  loadFolder(state.currentPath, { replace: true, page: 1 });
 });
 
-prevPage.addEventListener("click", () => loadFolder(state.currentPath, { page: Math.max(1, state.page - 1) }));
-nextPage.addEventListener("click", () => loadFolder(state.currentPath, { page: state.page + 1 }));
+prevPage.addEventListener("click", () => loadFolder(state.currentPath, { push: true, page: Math.max(1, state.page - 1) }));
+nextPage.addEventListener("click", () => loadFolder(state.currentPath, { push: true, page: state.page + 1 }));
 document.getElementById("closeLightbox").addEventListener("click", () => lightbox.close());
-document.getElementById("prevItem").addEventListener("click", () => stepLightbox(-1));
-document.getElementById("nextItem").addEventListener("click", () => stepLightbox(1));
+prevItem.addEventListener("click", () => stepLightbox(-1));
+nextItem.addEventListener("click", () => stepLightbox(1));
 lightbox.addEventListener("close", stopLightboxMedia);
 breadcrumbs.addEventListener("click", (event) => {
   const link = event.target.closest("a[data-path]");
@@ -311,6 +362,11 @@ lightbox.addEventListener("touchend", (event) => {
   state.touchStartX = null;
 }, { passive: true });
 
-window.addEventListener("popstate", () => loadFolder(currentPathFromLocation(), { page: 1 }));
+window.addEventListener("popstate", () => {
+  if (lightbox.open) {
+    lightbox.close();
+  }
+  loadFolder(currentPathFromLocation(), { page: currentPageFromLocation() });
+});
 
-loadFolder(currentPathFromLocation(), { page: 1 });
+loadFolder(currentPathFromLocation(), { page: currentPageFromLocation() });
