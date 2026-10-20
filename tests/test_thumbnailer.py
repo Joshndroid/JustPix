@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PIL import Image
+import pytest
 
 from app.thumbnailer import get_thumbnail, prune_legacy_thumbnail_cache, thumbnail_path
 
@@ -90,3 +91,32 @@ def test_legacy_cache_files_are_pruned_without_touching_other_files(tmp_path: Pa
     assert not legacy_thumbnail.exists()
     assert not legacy_fallback.exists()
     assert unrelated.exists()
+
+
+@pytest.mark.parametrize("name", ["image.jpg", "song.mp3", "broken.jpg"])
+def test_cached_thumbnail_does_not_scan_cache(monkeypatch, tmp_path: Path, name: str) -> None:
+    source = tmp_path / name
+    cache = tmp_path / "thumbcache"
+    if name == "image.jpg":
+        Image.new("RGB", (20, 20)).save(source)
+    else:
+        source.write_bytes(b"invalid media")
+    thumbnail = get_thumbnail(source, cache)
+
+    def fail_glob(*args, **kwargs):
+        pytest.fail("Cached thumbnails must not scan the cache directory")
+
+    monkeypatch.setattr(Path, "glob", fail_glob)
+    assert get_thumbnail(source, cache) == thumbnail
+
+
+def test_new_thumbnail_removes_previous_variant(tmp_path: Path) -> None:
+    source = tmp_path / "image.jpg"
+    cache = tmp_path / "thumbcache"
+    Image.new("RGB", (20, 20)).save(source)
+    previous = get_thumbnail(source, cache, size=10)
+
+    replacement = get_thumbnail(source, cache, size=20)
+
+    assert replacement.exists()
+    assert not previous.exists()

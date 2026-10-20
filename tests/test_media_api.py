@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from importlib import reload
 from pathlib import Path
+from urllib.parse import quote
+import asyncio
 
 from fastapi.testclient import TestClient
+import httpx
+import pytest
 
 import app.config
 import app.main
@@ -94,12 +98,43 @@ def test_thumb_route_uses_cache(monkeypatch, tmp_path: Path) -> None:
     assert (tmp_path / "thumbs").exists()
 
 
-def test_traversal_does_not_leak_host_path(monkeypatch, tmp_path: Path) -> None:
+@pytest.mark.parametrize("path", ["%2e%2e", "%252e%252e", "%25252e%25252e"])
+def test_traversal_does_not_leak_host_path(monkeypatch, tmp_path: Path, path: str) -> None:
     media_root = tmp_path / "photos"
     media_root.mkdir()
 
     client = make_client(monkeypatch, media_root)
-    response = client.get("/media/%2e%2e/secret.jpg")
+    response = client.get(f"/media/{path}/secret.jpg")
 
     assert response.status_code in {403, 404}
     assert str(tmp_path) not in response.text
+
+
+@pytest.mark.parametrize("name", ["photo%20one.jpg", "photo%2520one.jpg", "photo%2Fone.jpg", "holiday #1.jpg"])
+def test_media_urls_preserve_literal_filenames(monkeypatch, tmp_path: Path, name: str) -> None:
+    from PIL import Image
+
+    media_root = tmp_path / "photos"
+    folder = media_root / "Album%20one"
+    folder.mkdir(parents=True)
+    Image.new("RGB", (20, 20), "red").save(folder / name)
+    Image.new("RGB", (20, 20), "blue").save(folder / "photo one.jpg")
+    client = make_client(monkeypatch, media_root)
+    encoded_folder = quote(folder.name, safe="")
+    encoded_path = f"{encoded_folder}/{quote(name, safe='')}"
+
+    async def check_urls() -> None:
+        # Starlette's HTTPX TestClient decodes paths twice; ASGITransport matches Uvicorn.
+        transport = httpx.ASGITransport(app=client.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as browser:
+            response = await browser.get(f"/browse/{encoded_folder}")
+            assert response.status_code == 200
+            listing = response.json()
+            assert listing["path"] == folder.name
+            assert name in [item["name"] for item in listing["media"]]
+            response = await browser.get(f"/media/{encoded_path}")
+            assert response.status_code == 200
+            assert response.content == (folder / name).read_bytes()
+            assert (await browser.get(f"/thumb/{encoded_path}")).status_code == 200
+
+    asyncio.run(check_urls())

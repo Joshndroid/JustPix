@@ -141,7 +141,7 @@ Admins can add later users from:
 You can also pre-create a users file before first start:
 
 ```bash
-docker compose run --rm justpix python -m app.tools.create_user admin --role admin --json
+docker compose run --rm --entrypoint python justpix -m app.tools.create_user admin --role admin --json
 ```
 
 Put the output in:

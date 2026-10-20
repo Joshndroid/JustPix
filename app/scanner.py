@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TypeVar
-from urllib.parse import unquote
 import mimetypes
 
 MediaKind = Literal["image", "video", "audio", "other"]
@@ -58,22 +57,13 @@ class FolderListing:
     has_previous: bool
 
 
-def _decode_path(value: str) -> str:
-    previous = value
-    for _ in range(3):
-        decoded = unquote(previous)
-        if decoded == previous:
-            return decoded
-        previous = decoded
-    return previous
-
-
 def _is_hidden_relative(path: Path) -> bool:
     return any(part.startswith(".") for part in path.parts if part not in {"", "."})
 
 
 def safe_resolve(media_root: Path, requested_path: str = "") -> Path:
-    decoded = _decode_path((requested_path or "").replace("\\", "/")).lstrip("/")
+    # The web server already decoded the URL; percent escapes here are literal names.
+    decoded = (requested_path or "").replace("\\", "/").lstrip("/")
     if "\x00" in decoded:
         raise PathSafetyError("Invalid path")
 
@@ -176,8 +166,6 @@ def _sort_key(item: FolderEntry | MediaEntry, sort: str) -> tuple:
         return (-item.mtime, item.name.lower())
     if sort in {"date_asc", "oldest"}:
         return (item.mtime, item.name.lower())
-    if sort in {"name_desc", "za"}:
-        return tuple(-ord(char) for char in item.name.lower())
     return (item.name.lower(),)
 
 
@@ -249,8 +237,8 @@ def list_folder(
                 )
             )
 
-    folders.sort(key=lambda item: _sort_key(item, sort))
-    media.sort(key=lambda item: _sort_key(item, sort))
+    folders.sort(key=lambda item: _sort_key(item, sort), reverse=sort in {"name_desc", "za"})
+    media.sort(key=lambda item: _sort_key(item, sort), reverse=sort in {"name_desc", "za"})
     paged_media, has_next, has_previous = paginate(media, page, per_page)
 
     return FolderListing(

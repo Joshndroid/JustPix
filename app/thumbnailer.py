@@ -70,7 +70,6 @@ def fallback_thumbnail(
     cache_dir.mkdir(parents=True, exist_ok=True)
     target = cache_dir / f"fallback-{label.lower()}-{size}-{quality}.jpg"
     if target.exists():
-        _remove_other_variants(cache_dir, f"fallback-{label.lower()}-*.jpg", target)
         return target
     image = Image.new("RGB", (size, size), "#262626")
     draw = ImageDraw.Draw(image)
@@ -155,7 +154,6 @@ def get_thumbnail(source_path: Path, cache_dir: Path, *, size: int = 320, qualit
 
     target = thumbnail_path(cache_dir, source_path, size=size, quality=quality)
     if target.exists():
-        _remove_other_variants(cache_dir, f"v2-{_source_key(source_path)}-*.jpg", target)
         return target
 
     try:

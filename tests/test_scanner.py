@@ -20,12 +20,14 @@ def test_safe_resolve_rejects_parent_traversal(tmp_path: Path) -> None:
         safe_resolve(media_root, "../outside.jpg")
 
 
-def test_safe_resolve_rejects_encoded_traversal(tmp_path: Path) -> None:
+@pytest.mark.parametrize("requested_path", ["%2e%2e/outside.jpg", "album/%2e/photo.jpg", "album/%252e%252e/photo.jpg"])
+def test_safe_resolve_does_not_decode_encoded_components(tmp_path: Path, requested_path: str) -> None:
     media_root = tmp_path / "photos"
     media_root.mkdir()
+    (media_root / "album").mkdir()
 
-    with pytest.raises(PathSafetyError):
-        safe_resolve(media_root, "%2e%2e/outside.jpg")
+    with pytest.raises(FileNotFoundError):
+        safe_resolve(media_root, requested_path)
 
 
 @pytest.mark.parametrize(
@@ -33,8 +35,6 @@ def test_safe_resolve_rejects_encoded_traversal(tmp_path: Path) -> None:
     [
         "album//photo.jpg",
         "album/./photo.jpg",
-        "album/%2e/photo.jpg",
-        "album/%252e%252e/photo.jpg",
         "album\\..\\photo.jpg",
         "album/\x00/photo.jpg",
     ],
@@ -52,7 +52,16 @@ def test_safe_resolve_walks_nested_existing_entries(tmp_path: Path) -> None:
     expected = media_root / "Album" / "Holiday photo.jpg"
     touch(expected)
 
-    assert safe_resolve(media_root, "Album/Holiday%20photo.jpg") == expected.resolve()
+    assert safe_resolve(media_root, "Album/Holiday photo.jpg") == expected.resolve()
+
+
+def test_safe_resolve_preserves_literal_percent_names(tmp_path: Path) -> None:
+    media_root = tmp_path / "photos"
+    touch(media_root / "photo one.jpg")
+    expected = media_root / "photo%20one.jpg"
+    touch(expected)
+
+    assert safe_resolve(media_root, expected.name) == expected.resolve()
 
 
 def test_safe_resolve_rejects_symlink_escape(tmp_path: Path) -> None:
@@ -117,3 +126,17 @@ def test_list_folder_paginates_media(tmp_path: Path) -> None:
     assert [item.name for item in listing.media] == ["c.jpg"]
     assert listing.has_previous is True
     assert listing.has_next is False
+
+
+@pytest.mark.parametrize("sort", ["name_desc", "za"])
+def test_descending_names_put_longer_prefixes_first(tmp_path: Path, sort: str) -> None:
+    media_root = tmp_path / "photos"
+    for name in ["a.jpg", "a.jpg.jpg", "B.jpg"]:
+        touch(media_root / name)
+    for name in ["Album", "Album2", "Zebra"]:
+        (media_root / name).mkdir()
+
+    listing = list_folder(media_root, sort=sort, per_page=2)
+
+    assert [entry.name for entry in listing.media] == ["B.jpg", "a.jpg.jpg"]
+    assert [entry.name for entry in listing.folders] == ["Zebra", "Album2", "Album"]
