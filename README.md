@@ -44,7 +44,7 @@ If you previously used separate `/config` and `/thumbcache` mounts, move those f
 
 ## GitHub Container Registry
 
-GitHub Actions tests Python 3.12 and 3.14 and performs a blocking container vulnerability scan on pull requests and pushes to `main`. Images are published to GitHub Container Registry only when a GitHub Release with a semantic version tag such as `v1.0.0` is published. A manual release-workflow run tests and scans the image but does not publish it.
+GitHub Actions tests Python 3.12 and 3.15 and performs a blocking container vulnerability scan on pull requests and pushes to `main`. Images are published to GitHub Container Registry only when a GitHub Release with a semantic version tag such as `v1.0.0` is published. A manual release-workflow run tests and scans the image but does not publish it.
 
 Published image tags include:
 
